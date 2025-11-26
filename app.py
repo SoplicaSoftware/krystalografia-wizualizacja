@@ -30,6 +30,18 @@ def to_frac_latex(val):
         return str(f.numerator)
     return r"\frac{" + str(f.numerator) + r"}{" + str(f.denominator) + r"}"
 
+def index_to_math(n):
+    """
+    Zwraca łańcuch z reprezentacją indeksu w mathtext (np. liczba ujemna
+    jako nadpisana kreską, używamy \overline{} aby zadziałało dla wielocyfrowych).
+    Zwraca string zawierający delimitery dolara, np. "$\overline{1}$" lub "$2$".
+    """
+    if n == 0:
+        return "$0$"
+    if n < 0:
+        return r"$\overline{" + str(abs(n)) + r"}$"
+    return f"${n}$"
+
 def draw_base_cube():
     """Rysuje bazę sześcianu."""
     ax.cla()
@@ -98,7 +110,8 @@ def draw_instruction_panel(h, k, l):
     ax_instr.axis('off')
     
     # Nagłówek
-    header = f"Wskaźniki: ({h} {k} {l})"
+    # Używamy mathtext, aby dla wartości ujemnych pokazać kreskę nad liczbą
+    header = "Wskaźniki: (" + index_to_math(h) + " " + index_to_math(k) + " " + index_to_math(l) + ")"
     ax_instr.text(0.5, 0.95, header, ha='center', fontsize=16, fontweight='bold', transform=ax_instr.transAxes)
 
     if step == 0:
