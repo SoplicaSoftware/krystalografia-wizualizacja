@@ -6,8 +6,6 @@ Prosty interaktywny skrypt wizualizujący płaszczyzny sieciowe w sześcianie pr
 
 **Najprostsze (Mac / Windows) — bez `venv`**
 
-Jeżeli chcesz uruchomić program jak najszybciej i nie używać wirtualnego środowiska, wykonaj poniższe kroki. To najprostsza droga dla początkujących.
-
 Mac (Terminal / zsh):
 
 ```bash
@@ -37,13 +35,6 @@ python app.py
 Krótko:
 - Najpierw instalujesz zależności poleceniem `pip install -r requirements.txt`.
 - Potem uruchamiasz `app.py` przy pomocy `python app.py` (macOS: `python3 app.py`).
-- Jeśli coś nie działa, skopiuj i wklej komunikat błędu do wyszukiwarki lub daj znać — pomogę.
-
-1. Otwórz folder projektu w VS Code (`File -> Open Folder...`).
-2. Zainstaluj rozszerzenie `Python` (Microsoft).
-3. Wybierz interpreter Pythona: kliknij w prawym dolnym rogu na nazwę interpretera i wybierz `./.venv/bin/python` (jeśli używasz venv) lub systemowy interpreter.
-4. Zainstaluj wymagane pakiety (z terminala w VS Code):
-
 ```bash
 python -m pip install -r requirements.txt
 ```
