@@ -6,8 +6,6 @@ Prosty interaktywny skrypt wizualizujący płaszczyzny sieciowe w sześcianie pr
 
 **Najprostsze (Mac / Windows) — bez `venv`**
 
-Jeżeli chcesz uruchomić program jak najszybciej i nie używać wirtualnego środowiska, wykonaj poniższe kroki. To najprostsza droga dla początkujących.
-
 Mac (Terminal / zsh):
 
 ```bash
