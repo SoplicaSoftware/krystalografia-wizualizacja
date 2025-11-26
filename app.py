@@ -23,10 +23,9 @@ ax_instr.axis('off')
 def to_frac_latex(val):
     """
     Zamienia liczbę na ułamek LaTeX (BEZ znaków $).
-    Dzięki temu można bezpiecznie wstawiać wynik do innych równań.
     """
     if val == 0: return "0"
-    f = Fraction(val).limit_denominator(10)
+    f = Fraction(val).limit_denominator(20)
     if f.denominator == 1:
         return str(f.numerator)
     return r"\frac{" + str(f.numerator) + r"}{" + str(f.denominator) + r"}"
@@ -73,7 +72,7 @@ def calculate_logic(h, k, l):
         dist = 1.0/abs(h)
         direction = -1 if h < 0 else 1
         px = [ox + direction*dist, oy, oz]
-        if 0 <= px[0] <= 1.01: points.append(px)
+        if -0.01 <= px[0] <= 1.01: points.append(px)
         
     # Y
     py = None
@@ -81,7 +80,7 @@ def calculate_logic(h, k, l):
         dist = 1.0/abs(k)
         direction = -1 if k < 0 else 1
         py = [ox, oy + direction*dist, oz]
-        if 0 <= py[1] <= 1.01: points.append(py)
+        if -0.01 <= py[1] <= 1.01: points.append(py)
         
     # Z
     pz = None
@@ -89,7 +88,7 @@ def calculate_logic(h, k, l):
         dist = 1.0/abs(l)
         direction = -1 if l < 0 else 1
         pz = [ox, oy, oz + direction*dist]
-        if 0 <= pz[2] <= 1.01: points.append(pz)
+        if -0.01 <= pz[2] <= 1.01: points.append(pz)
         
     return start, points, (px, py, pz)
 
@@ -126,7 +125,7 @@ def draw_instruction_panel(h, k, l):
         ax_instr.text(0.05, 0.50, res, fontsize=12, fontweight='bold', bbox=dict(facecolor='orange', alpha=0.2), transform=ax_instr.transAxes)
 
     elif step == 2:
-        # KROK 2: Tabela - Poprawiona (bez błędu $)
+        # KROK 2: Tabela
         ax_instr.text(0.05, 0.85, "KROK 2: Obliczanie punktów", fontsize=14, fontweight='bold', color='blue', transform=ax_instr.transAxes)
         
         col_labels = ['Wskaźnik', 'Równanie (Odwrotność)']
@@ -136,7 +135,6 @@ def draw_instruction_panel(h, k, l):
         if h == 0:
             math_x = r"$1/x = 0 \rightarrow \infty$"
         else:
-            # Teraz to_frac_latex nie zwraca $, więc możemy go bezpiecznie włożyć w f-stringa
             res = to_frac_latex(1/abs(h))
             math_x = fr"$1/x = {abs(h)} \rightarrow {res}$"
         table_vals.append([f"h={h}", math_x])
@@ -177,8 +175,13 @@ def draw_instruction_panel(h, k, l):
             lines.append(f"Płaszczyzna RÓWNOLEGŁA do osi {zero_axis}.")
             lines.append(f"1. Połącz dwa punkty.")
             lines.append(f"2. Rozciągnij wzdłuż osi {zero_axis}.")
+        elif zeros == 2:
+             non_zero = "X" if h!=0 else ("Y" if k!=0 else "Z")
+             lines.append(f"Tylko wskaźnik {non_zero} jest liczbą.")
+             lines.append(f"Płaszczyzna przecina oś {non_zero} w wyliczonym punkcie.")
+             lines.append("Jest to ściana prostopadła do tej osi.")
         else:
-             lines.append("To ściana sześcianu (lub płaszczyzna do niej równoległa).")
+            lines.append("To cały sześcian?")
         ax_instr.text(0.05, 0.70, "\n".join(lines), fontsize=12, transform=ax_instr.transAxes, va='top', linespacing=1.8)
 
     elif step == 4:
@@ -192,7 +195,7 @@ def draw_scene():
     start, pts, raw_pts = calculate_logic(h, k, l)
     ox, oy, oz = start
     
-    # KROK 1
+    # KROK 1: Start
     if step >= 1:
         color = 'orange'
         ax.scatter(ox, oy, oz, color=color, s=100, edgecolors='red', zorder=10)
@@ -203,21 +206,21 @@ def draw_scene():
         ax.quiver(ox,oy,oz, 0,sy*d,0, color='orange', linestyle='--', alpha=0.5)
         ax.quiver(ox,oy,oz, 0,0,sz*d, color='orange', linestyle='--', alpha=0.5)
 
-    # KROK 2
+    # KROK 2: Punkty
     if step >= 2:
         px, py, pz = raw_pts
         if px: ax.scatter(*px, color='red', s=50); ax.plot([ox, px[0]], [oy, px[1]], [oz, px[2]], color='red')
         if py: ax.scatter(*py, color='green', s=50); ax.plot([ox, py[0]], [oy, py[1]], [oz, py[2]], color='green')
         if pz: ax.scatter(*pz, color='blue', s=50); ax.plot([ox, pz[0]], [oy, pz[1]], [oz, pz[2]], color='blue')
 
-    # KROK 3
+    # KROK 3: Linie Równoległości
     final_poly_pts = []
     zeros = [h, k, l].count(0)
     base_pts = [p for p in pts]
+    
     if step >= 3:
         if zeros == 1:
             idx = 0 if h==0 else (1 if k==0 else 2)
-            final_poly_pts = []
             for p in base_pts:
                 p1 = list(p); p1[idx] = 0
                 p2 = list(p); p2[idx] = 1
@@ -225,10 +228,28 @@ def draw_scene():
                 ax.plot([p1[0], p2[0]], [p1[1], p2[1]], [p1[2], p2[2]], color='purple', linestyle='--', linewidth=1)
         elif zeros == 0:
             final_poly_pts = base_pts
-        else:
-             final_poly_pts = [[0,0,0], [1,1,1]]
+        elif zeros == 2:
+            # Płaszczyzna typu ściana (np. 2 0 0)
+            if h != 0: 
+                # Cięcie na osi X w punkcie px[0]
+                x_val = raw_pts[0][0]
+                final_poly_pts = [[x_val, 0, 0], [x_val, 1, 0], [x_val, 1, 1], [x_val, 0, 1]]
+            elif k != 0:
+                y_val = raw_pts[1][1]
+                final_poly_pts = [[0, y_val, 0], [1, y_val, 0], [1, y_val, 1], [0, y_val, 1]]
+            elif l != 0:
+                z_val = raw_pts[2][2]
+                final_poly_pts = [[0, 0, z_val], [1, 0, z_val], [1, 1, z_val], [0, 1, z_val]]
+            
+            # Rysuj ramkę ściany
+            if step == 3: # Tylko ramka
+                p = final_poly_pts
+                # Zamknięta pętla
+                loop = p + [p[0]]
+                xs, ys, zs = zip(*loop)
+                ax.plot(xs, ys, zs, color='purple', linestyle='--', linewidth=1.5)
 
-    # KROK 4
+    # KROK 4: Wypełnienie
     if step == 4 and len(final_poly_pts) >= 3:
         center = np.mean(np.array(final_poly_pts), axis=0)
         norm = np.array([h, k, l]) if h!=0 or k!=0 or l!=0 else np.array([1,0,0])
